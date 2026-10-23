@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCP en Finanzas · Desafío de Métodos Numéricos</title>
+<meta name="description" content="Gradientes Conjugados Precondicionado aplicado a una cartera de inversión: tres escenarios, errores, condicionamiento y pruebas QA.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap bar">
+    <strong class="brand">GCP · Finanzas</strong>
+    <nav id="nav" aria-label="Secciones">
+      <a href="#inicio">1 Inicio</a>
+      <a href="#caso">2 Caso</a>
+      <a href="#formulacion">3 Formulación</a>
+      <a href="#entrada">4 Entrada</a>
+      <a href="#escenarios">5 Escenarios</a>
+      <a href="#referencia">6 Referencia</a>
+      <a href="#gcp">7 GCP vs GC</a>
+      <a href="#errores">8 Errores</a>
+      <a href="#qa">9 QA</a>
+      <a href="#conclusiones">10 Conclusiones</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="banner" class="banner" role="alert" hidden></div>
+
+  <section id="inicio">
+    <p class="eyebrow">Universidad Mayor de San Andrés · Carrera de Informática · Métodos Numéricos</p>
+    <h1>Método de Gradientes Conjugados Precondicionado en finanzas</h1>
+    <p class="lead">Optimización de una cartera de inversión media-varianza resuelta como un sistema simétrico definido positivo
+      <code>Ax = b</code>, comparando GCP, GC simple y un método directo en tres escenarios.</p>
+    <div class="card grid2">
+      <label>Estudiante
+        <input id="studentName" type="text" value="Jhoel Percy Gonzales Herrera" autocomplete="name">
+      </label>
+      <label>Mención
+        <select id="studentMencion">
+          <option>Inteligencia Artificial y Ciencia de Datos</option>
+          <option selected>Ingeniería de Sistemas</option>
+          <option>Desarrollo de Sistemas</option>
+        </select>
+      </label>
+    </div>
+    <div class="card" id="homeSummary"></div>
+  </section>
+
+  <section id="caso">
+    <h2>2 · Caso de estudio</h2>
+    <div id="caseText"></div>
+  </section>
+
+  <section id="formulacion">
+    <h2>3 · Formulación del modelo</h2>
+    <div id="formulation"></div>
+  </section>
+
+  <section id="entrada">
+    <h2>4 · Entrada de datos</h2>
+    <p>Edita cualquier coeficiente: todo se recalcula al instante. Si la matriz deja de ser simétrica definida positiva, se muestra un aviso y no se ejecuta el solver.</p>
+    <div class="card" id="inputPanel"></div>
+  </section>
+
+  <section id="escenarios">
+    <h2>5 · Los tres escenarios</h2>
+    <div class="btnrow" id="scenarioButtons"></div>
+    <div id="scenarioInfo" class="card"></div>
+  </section>
+
+  <section id="referencia">
+    <h2>6 · Solución numérica de referencia (método directo)</h2>
+    <div id="referenceOut"></div>
+  </section>
+
+  <section id="gcp">
+    <h2>7 · GCP frente a GC simple</h2>
+    <div id="gcpOut"></div>
+  </section>
+
+  <section id="errores">
+    <h2>8 · Análisis de errores y condicionamiento</h2>
+    <div id="errorsOut"></div>
+    <h3>Tabla comparativa de los tres escenarios</h3>
+    <p class="muted">Calculada con los datos originales de cada escenario y su precondicionador recomendado (Jacobi), independientemente de la edición actual.</p>
+    <div id="compareTable" class="scroll"></div>
+    <h3>Aporte de la mención: correlaciones y sensibilidad</h3>
+    <div id="mentionOut"></div>
+  </section>
+
+  <section id="qa">
+    <h2>9 · Módulo de pruebas de software (QA)</h2>
+    <div class="btnrow"><button id="runQA" class="primary">Ejecutar todas las pruebas</button></div>
+    <div id="qaOut" class="scroll"></div>
+  </section>
+
+  <section id="conclusiones">
+    <h2>10 · Conclusiones y referencias</h2>
+    <div id="conclusions"></div>
+  </section>
+</main>
+
+<footer class="wrap foot">Proyecto académico · Los datos son ilustrativos y están justificados conceptualmente; no constituyen asesoría financiera.</footer>
+
+<script src="js/core.js"></script>
+<script src="js/scenarios.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
