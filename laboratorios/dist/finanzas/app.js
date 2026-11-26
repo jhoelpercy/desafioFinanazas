@@ -1,0 +1,37 @@
+import {scenario,financial,units,norm} from '../core.js';
+import {f,vector,table,chart} from '../ui.js';
+const $=s=>document.querySelector(s),names={ideal:'Ideal',estres:'Bajo estrés financiero',mal:'Mal condicionado'};
+const options=()=>({x0:[...document.querySelectorAll('.x0')].map(x=>x.value.trim()===''?NaN:+x.value),tol:+$('#tol').value,maxIter:+$('#max').value,preconditioner:$('#pre').value});
+let currentName='ideal',latest=null;
+function load(name){currentName=name;const {A,b}=scenario(name);$('#active').textContent='Escenario: '+names[name];$('#matrix').innerHTML=table(['',...units.map((_,i)=>'x'+(i+1))],A.map((r,i)=>['Fila '+(i+1),...r.map((v,j)=>`<input aria-label="A ${i+1} ${j+1}" class="a" data-i="${i}" data-j="${j}" type="number" step="any" value="${Number(v.toPrecision(12))}">`)]));$('#vectors').innerHTML=table(['Variable','b','x₀'],b.map((v,i)=>[units[i],`<input aria-label="b ${i+1}" class="b" type="number" step="any" value="${Number(v.toPrecision(12))}">`,`<input aria-label="x inicial ${i+1}" class="x0" type="number" step="any" value="0">`]));update();}
+function read(){const A=Array.from({length:4},()=>Array(4));document.querySelectorAll('.a').forEach(e=>A[+e.dataset.i][+e.dataset.j]=e.value.trim()===''?NaN:+e.value);const b=[...document.querySelectorAll('.b')].map(e=>e.value.trim()===''?NaN:+e.value);return{A,b};}
+function update(){try{
+ const {A,b}=read(),opt=options();if(opt.x0.some(v=>!Number.isFinite(v)))throw Error('El vector inicial contiene valores vacíos o inválidos.');
+ const r=financial(A,b,opt);latest={A,b,options:opt,result:r};
+ $('#status').textContent=r.pcg.converged?'Cálculo actualizado: alcanzó la tolerancia.':'No alcanzó la tolerancia. Revisa el límite de iteraciones y los datos.';$('#status').className=r.pcg.converged?'pass':'error';
+ $('#stats').innerHTML=[[f(r.condition,3),'κ₂(A)'],[f(r.preCondition,3),'κ₂(M⁻¹A)'],[r.pcg.iterations+' / '+r.plain.iterations,'Iteraciones GCP / GC']].map(([v,l])=>`<div class="stat"><strong>${v}</strong><span>${l}</span></div>`).join('');
+ $('#solutions').innerHTML=table(['Método','Vector solución','Residuo '+(norm(b)?'relativo':'absoluto'),'Convergió'],[['Referencia · Cholesky',vector(r.reference),'Referencia directa','Sí'],['GCP · '+opt.preconditioner,vector(r.pcg.x),f(r.pcg.residual),r.pcg.converged?'Sí':'No'],['GC simple',vector(r.plain.x),f(r.plain.residual),r.plain.converged?'Sí':'No']]);
+ const total=r.reference.reduce((s,v)=>s+v,0);$('#business').innerHTML=`<p><strong>Necesidad trimestral:</strong> ${f(total,3)} mil Bs. <strong>Margen frente al techo didáctico:</strong> ${f(200-total,3)} mil Bs.</p><p class="note">${total>200?'La propuesta supera el techo: requiere revisión presupuestaria.':r.reference.some(v=>v<0)?'Hay montos negativos: revisar el modelo.':'La propuesta queda dentro del techo didáctico de 200 mil Bs.'} Una matriz editada puede dejar de corresponder a los supuestos Q+L del caso.</p>`;
+ $('#spd').innerHTML=table(['Comprobación','Resultado'],[['Autovalores de A',vector(r.eigen)],['Menores principales',vector(r.minors)],['Diagonal de L',vector(r.L.map((row,i)=>row[i]))]]);
+ $('#errors').innerHTML=table(['Área · mil Bs','Referencia','GCP','Error absoluto','Error relativo','Error %'],r.errors.map((e,i)=>[units[i],f(r.reference[i]),f(r.pcg.x[i]),f(e.abs),f(e.relative),f(e.percent)]));
+ $('#convergence').innerHTML=chart([{name:'GCP',points:r.pcg.history.map((y,x)=>[x,y])},{name:'GC simple',points:r.plain.history.map((y,x)=>[x,y])}],{log:true});
+ $('#history').innerHTML=table(['Iteración','Residuo GCP','Residuo GC'],Array.from({length:Math.max(r.pcg.history.length,r.plain.history.length)},(_,i)=>[i,i<r.pcg.history.length?f(r.pcg.history[i]):'—',i<r.plain.history.length?f(r.plain.history[i]):'—']));
+ $('#conclusion').innerHTML=`<p>En el escenario activo, GCP usa ${r.pcg.iterations} iteraciones y GC simple ${r.plain.iterations}. El residuo final GCP es ${f(r.pcg.residual)}. El precondicionador cambia κ₂ de ${f(r.condition,2)} a ${f(r.preCondition,2)}. ${r.pcg.converged?'Se cumple el criterio de parada.':'El resultado no debe aceptarse como convergente.'}</p>`;
+ }catch(e){latest=null;$('#status').className='error';$('#status').textContent=e.message;for(const id of ['stats','solutions','business','spd','errors','convergence','history','conclusion'])$('#'+id).innerHTML='';}}
+const rows=Object.keys(names).map(name=>{const s=scenario(name);return{name,...financial(s.A,s.b,{tol:1e-6,maxIter:100,x0:[0,0,0,0],preconditioner:'jacobi'})};});
+$('#comparison').innerHTML=table(['Indicador',...rows.map(r=>names[r.name])],[
+ ['Referencia',...rows.map(r=>vector(r.reference))],['GCP',...rows.map(r=>vector(r.pcg.x))],['Error absoluto por variable',...rows.map(r=>vector(r.errors.map(e=>e.abs)))],['Error % por variable',...rows.map(r=>vector(r.errors.map(e=>e.percent)))],['Iteraciones GC',...rows.map(r=>r.plain.iterations)],['Iteraciones GCP',...rows.map(r=>r.pcg.iterations)],['κ₂(A)',...rows.map(r=>f(r.condition,3))],['κ₂(M⁻¹A)',...rows.map(r=>f(r.preCondition,3))],['Residuo GCP',...rows.map(r=>f(r.pcg.residual))],['¿Convergió?',...rows.map(r=>r.pcg.converged?'Sí':'No')],['Interpretación','Prioridades comparables; equilibrio de recursos.','Mayor demanda por presión de costos.','Prioridades de escalas diferentes; Jacobi corrige la diagonal.']]);
+$('#sourceData').innerHTML=table(['Supuesto',...Object.values(names)],[['Objetivos d (mil Bs)',...Object.keys(names).map(n=>vector(scenario(n).target))],['Prioridades q',...Object.keys(names).map(n=>vector(scenario(n).q))],['Peso por relación w',...Object.keys(names).map(n=>f(scenario(n).w))]]);
+function qa(){const tests=[];const run=(label,input,expected,fn)=>{try{const value=fn();tests.push([label,input,expected,value?'Cumple':'No cumple',value?'Aprobada':'Falló']);}catch(e){tests.push([label,input,expected,e.message,'Falló']);}};
+ const opts={tol:1e-6,maxIter:100,x0:[0,0,0,0],preconditioner:'jacobi'};
+ run('Carga de escenarios','Ideal, estrés, mal condicionado','Tres soluciones convergentes',()=>rows.every(r=>r.pcg.converged));
+ run('Matriz no simétrica','A₁₂ distinto de A₂₁','Rechazo explícito',()=>{const s=scenario();s.A[0][1]+=1;try{financial(s.A,s.b,opts);return false;}catch(e){return e.message.includes('simétrica');}});
+ run('Matriz no definida positiva','A₁₁ = −1','Rechazo explícito',()=>{const s=scenario();s.A[0][0]=-1;try{financial(s.A,s.b,opts);return false;}catch(e){return e.message.includes('positiva');}});
+ run('Edición de coeficiente','A₁₁ aumenta 0,5','Nueva solución calculada',()=>{const s=scenario();const a=financial(s.A,s.b,opts);s.A[0][0]+=.5;const b=financial(s.A,s.b,opts);return Math.abs(a.reference[0]-b.reference[0])>1e-5&&b.pcg.converged;});
+ run('Precondicionamiento','Escenario mal condicionado','GCP ≤ GC en iteraciones',()=>rows[2].pcg.iterations<=rows[2].plain.iterations);
+ $('#qa').innerHTML=table(['Caso','Entrada','Resultado esperado','Resultado obtenido','Conclusión'],tests);}
+$('#runQA').onclick=qa;$('#calculate').onclick=update;
+document.querySelectorAll('[data-case]').forEach(btn=>btn.onclick=()=>load(btn.dataset.case));
+let timer;$('#laboratorio').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(update,250);});$('#pre').onchange=update;
+$('#download').onclick=()=>{if(!latest)return;const url=URL.createObjectURL(new Blob([JSON.stringify(latest,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='resultados_gradientes.json';a.click();URL.revokeObjectURL(url);};
+load('ideal');qa();
