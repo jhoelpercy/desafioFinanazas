@@ -1,0 +1,66 @@
+[
+  {
+    "name": "Convergencia y referencia: ideal",
+    "status": "aprobada"
+  },
+  {
+    "name": "Convergencia y referencia: estres",
+    "status": "aprobada"
+  },
+  {
+    "name": "Convergencia y referencia: mal",
+    "status": "aprobada"
+  },
+  {
+    "name": "Rechazo de asimetría",
+    "status": "aprobada"
+  },
+  {
+    "name": "Rechazo de matriz indefinida",
+    "status": "aprobada"
+  },
+  {
+    "name": "Edición recalcula solución",
+    "status": "aprobada"
+  },
+  {
+    "name": "Ventaja de Jacobi bajo mal escalamiento",
+    "status": "aprobada"
+  },
+  {
+    "name": "Vector b cero y x0 cero",
+    "status": "aprobada"
+  },
+  {
+    "name": "Límite de iteraciones produce no convergencia",
+    "status": "aprobada"
+  },
+  {
+    "name": "Euler: primer paso simultáneo",
+    "status": "aprobada"
+  },
+  {
+    "name": "Euler y analítica a 20 s",
+    "status": "aprobada"
+  },
+  {
+    "name": "Paso parcial alcanza el extremo",
+    "status": "aprobada"
+  },
+  {
+    "name": "Límite sin resistencia",
+    "status": "aprobada"
+  },
+  {
+    "name": "Convergencia con reducción del paso",
+    "status": "aprobada"
+  },
+  {
+    "name": "RK4 mejora a Euler en el caso base",
+    "status": "aprobada"
+  },
+  {
+    "name": "Se rechaza masa cero",
+    "status": "aprobada"
+  }
+]
